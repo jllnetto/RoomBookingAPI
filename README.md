@@ -4,7 +4,7 @@ This project was proposed as an job interview test.
 This Solution was created using the best pratices known by me, It aims to be a very develloper friendly Solution with easy maintenancen and a easy expantion capacity.
 I also create it to be of easy integration with user friendly menssagery to express erros in funcionality. 
 
-## ✔️ Técnicas e tecnologias utilizadas
+## ✔️ Techniques and Technologies used
 
 - ``C# 10.0``
 - ``.NET 6.0``
@@ -18,6 +18,7 @@ I also create it to be of easy integration with user friendly menssagery to expr
 - ``OOP``
 - ``Dependency Injection and Control Invertion``
 - ``Repository Pattern``
+- ``Unit Tests``
 
 ## 📁 Access to the Project
- You 
+ You can access the project [here](https://github.com/jllnetto/RoomBookingAPI).
