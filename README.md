@@ -1,8 +1,10 @@
 # RoomBookingAPI
 # Project Summary
 This project was proposed as an job interview test.
-This Solution was created using the best pratices known by me, It aims to be a very develloper friendly Solution with easy maintenancen and a easy expantion capacity.
-I also create it to be of easy integration with user friendly menssagery to express erros in funcionality. 
+
+This Solution was created using the best pratices known by me. It aims to be a very developer friendly solution with easy maintenance and a easy expantion capacity.
+
+I also create it to be of easy integration with user friendly notifications to inform erros in functionality. 
 
 ## ✔️ Techniques and Technologies used
 
@@ -16,9 +18,6 @@ I also create it to be of easy integration with user friendly menssagery to expr
 - ``SQL Server``
 
 - ``OOP``
-- ``Dependency Injection and Control Invertion``
+- ``Dependency Injection``
 - ``Repository Pattern``
 - ``Unit Tests``
-
-## 📁 Access to the Project
- You can access the project [here](https://github.com/jllnetto/RoomBookingAPI).
