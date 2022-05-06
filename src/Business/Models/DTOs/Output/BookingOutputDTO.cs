@@ -1,12 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Business.Models.DTOs
+namespace Business.Models.DTOs.Output
 {
-    public class BookingDTO
+    public class BookingOutputDTO
     {
+        [Key]
         public Guid Id { get; set; }
-
-
 
         [Required(ErrorMessage = "The field {0} is required ")]
         public DateTime BookingStarts { get; set; }
@@ -19,8 +18,7 @@ namespace Business.Models.DTOs
 
         [Required(ErrorMessage = "The field {0} is required ")]
         public Guid RoomId { get; set; }
-
-        public RoomDTO Room { get; set; }
+        public string? BookingStatus { get; set; }        
 
         [ScaffoldColumn(false)]
         public DateTime CreateDate { get; set; }

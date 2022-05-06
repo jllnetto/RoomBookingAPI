@@ -1,6 +1,6 @@
 ﻿using Business.Interfaces.Notifications;
 using Business.Interfaces.Repositories;
-using Business.Interfaces.Servives;
+using Business.Interfaces.Services;
 using Business.Notifications;
 using Business.Services;
 using Data.Context;

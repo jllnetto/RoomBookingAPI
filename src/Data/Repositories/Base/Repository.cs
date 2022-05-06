@@ -22,7 +22,7 @@ namespace Data.Repositories.Base
             return await DbSet.ToListAsync();
         }
 
-        public async Task<TEntity> GetByIdNoTarcking(Guid id)
+        public async Task<TEntity> GetByIdNoTracking(Guid id)
         {
             return await DbSet.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
         }
@@ -32,8 +32,6 @@ namespace Data.Repositories.Base
             return await DbSet.FindAsync(id);
         }
 
-       
-       
         public async Task<Paginator<TEntity>> Search(Expression<Func<TEntity, bool>> predicate, int currentPage = 1, int itemsPerPage = 30)
         {
 
@@ -47,15 +45,17 @@ namespace Data.Repositories.Base
             return new Paginator<TEntity>(data, count, currentPage, itemsPerPage);
         }
 
-        public async Task Add(TEntity entity)
+        public async Task<TEntity> Add(TEntity entity)
         {
             DbSet.Add(entity);
             await SaveChanges();
+            return entity;
         }
-        public async Task Update(TEntity entity)
+        public async Task<TEntity> Update(TEntity entity)
         {
             DbSet.Update(entity);
             await SaveChanges();
+            return entity;
         }
 
         public async Task Remove(Guid id)

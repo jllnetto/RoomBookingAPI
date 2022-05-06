@@ -1,8 +1,8 @@
 ﻿using Business.Interfaces.Notifications;
 using Business.Interfaces.Repositories;
-using Business.Interfaces.Servives;
+using Business.Interfaces.Services;
 using Business.Models;
-using Business.Models.Enuns;
+using Business.Models.Enums;
 using Business.Models.Validations;
 using Business.Notifications;
 using Business.Services;
@@ -32,7 +32,7 @@ namespace Test.BookingTests
         }
 
         [Fact]
-        public void Should_Not_Validate_Booking_If_Start_Date_Is_larger_Than_End_Date()
+        public void Should_Not_Validate_Booking_If_Start_Date_Is_Greater_Than_End_Date()
         {
             var service = CreateRoomServiceInstance();
             var booking = new Booking()

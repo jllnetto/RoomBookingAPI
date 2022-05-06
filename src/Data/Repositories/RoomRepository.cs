@@ -17,47 +17,53 @@ namespace Data.Repositories
         public async Task<Paginator<Room>> Search(RoomFilter filter, int currentPage = 1, int itemsPerPage = 30)
         {
             var query = DbSet.AsNoTracking().Select(x => x);
-            if (filter.Id is not null)
-            {
-                
-                query = query.Where(r => r.Id == filter.Id);
 
+            if (filter is not null)
+            {
+                if (filter.Id is not null)
+                {
+
+                    query = query.Where(r => r.Id == filter.Id);
+
+                }
+                if (!string.IsNullOrEmpty(filter.RoomNumber))
+                {
+
+                    query = query.Where(r => r.RoomNumber.Contains(filter.RoomNumber));
+                }
+                if (filter.PriceBegin is not null)
+                {
+
+                    query = query.Where(r => filter.PriceBegin >= r.Price);
+                }
+                if (filter.PriceFinish is not null)
+                {
+
+                    query = query.Where(r => filter.PriceFinish <= r.Price);
+                }
+                if (filter.AdultCapacityBegin is not null)
+                {
+
+                    query = query.Where(r => filter.AdultCapacityBegin >= r.AdultCapacity);
+                }
+                if (filter.AdultCapacityFinish is not null)
+                {
+
+                    query = query.Where(r => filter.AdultCapacityFinish <= r.AdultCapacity);
+                }
+                if (filter.ChildrenCapacityBegin is not null)
+                {
+
+                    query = query.Where(r => filter.ChildrenCapacityBegin >= r.ChildrenCapacity);
+                }
+                if (filter.ChildrenCapacityFinish is not null)
+                {
+
+                    query = query.Where(r => filter.ChildrenCapacityFinish <= r.ChildrenCapacity);
+                }
             }
-            if (!string.IsNullOrEmpty(filter.RoomNumber))
-            {
 
-                query = query.Where(r => r.RoomNumber.Contains(filter.RoomNumber));
-            }
-            if (filter.PriceBegin is not null)
-            {
 
-                query = query.Where(r => filter.PriceBegin >= r.Price);
-            }
-            if (filter.PriceFinish is not null)
-            {
-
-                query = query.Where(r => filter.PriceFinish <= r.Price);
-            }
-            if (filter.AdultCapacityBegin is not null)
-            {
-
-                query = query.Where(r => filter.AdultCapacityBegin >= r.AdultCapacity);
-            }
-            if (filter.AdultCapacityFinish is not null)
-            {
-
-                query = query.Where(r => filter.AdultCapacityFinish <= r.AdultCapacity);
-            }
-            if (filter.ChildrenCapacityBegin is not null)
-            {
-
-                query = query.Where(r => filter.ChildrenCapacityBegin >= r.ChildrenCapacity);
-            }
-            if (filter.ChildrenCapacityFinish is not null)
-            {
-
-                query = query.Where(r => filter.ChildrenCapacityFinish <= r.ChildrenCapacity);
-            }            
             int count = await query.CountAsync();
             List<Room> data = await query
                     .OrderByDescending(c => c.CreateDate)
@@ -71,13 +77,13 @@ namespace Data.Repositories
             return await DbSet.AsNoTracking().FirstOrDefaultAsync(x => x.RoomNumber == roomNumber);
         }
 
-        public Task<bool> CheckAvailability(Guid? id, DateTime dateStart, DateTime dateEnd)
+        public async Task<bool> CheckAvailability(Guid? id, DateTime dateStart, DateTime dateEnd)
         {
             if (id is not null)
             {
-                return DbSet.AnyAsync(r => r.Id == id && r.Booking.Any(res => res.BookingStarts.Date <= dateEnd.Date && dateStart.Date <= res.BookingEnds.Date));
+                return !(await DbSet.AnyAsync(r => r.Id == id && r.Booking.Any(res => res.BookingStarts.Date <= dateEnd.Date && dateStart.Date <= res.BookingEnds.Date)));
             }
-            return DbSet.AnyAsync(r => r.Booking.Any(res => res.BookingStarts.Date <= dateEnd.Date && dateStart.Date <= res.BookingEnds.Date));
+            return !(await DbSet.AnyAsync(r => r.Booking.Any(res => res.BookingStarts.Date <= dateEnd.Date && dateStart.Date <= res.BookingEnds.Date)));
 
         }
     }

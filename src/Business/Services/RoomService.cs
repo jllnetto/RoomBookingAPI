@@ -1,6 +1,6 @@
 ﻿using Business.Interfaces.Notifications;
 using Business.Interfaces.Repositories;
-using Business.Interfaces.Servives;
+using Business.Interfaces.Services;
 using Business.Models;
 using Business.Models.Filters;
 using Business.Models.Validations;
@@ -19,14 +19,14 @@ namespace Business.Services
             _roomRepository = roomRepository;
         }
 
-        public async Task Add(Room room)
+        public async Task<Room> Add(Room room)
         {
             if (!ExecuteValidation(new RoomValidation(), room) || !(await Validate(room)).IsValid)
             {
-                return;
+                return room;
             }
 
-            await _roomRepository.Add(room);
+            return await _roomRepository.Add(room);
         }
 
         public async Task<bool> CheckAvailability(Guid? id, DateTime dateStart, DateTime dateEnd)
@@ -49,14 +49,14 @@ namespace Business.Services
             await _roomRepository.Remove(Id);
         }
 
-        public async Task Update(Room room)
+        public async Task<Room> Update(Room room)
         {
             if (!ExecuteValidation(new RoomValidation(), room) || !(await Validate(room)).IsValid)
             {
-                return;
+                return room;
             }
 
-            await _roomRepository.Update(room);
+            return await _roomRepository.Update(room);
         }
 
         public async Task<ValidatorResult> Validate(Room room)

@@ -1,5 +1,5 @@
 ﻿using Business.Models;
-using Business.Models.Enuns;
+using Business.Models.Enums;
 using Business.Models.Validations;
 using System;
 using Xunit;
@@ -25,7 +25,7 @@ namespace Test.BookingTests
             var validator = validation.Validate(room);
             Assert.False(validator.IsValid);
             Assert.Equal(1, validator.Errors.Count);
-            Assert.Contains(validator.Errors, x => x.ErrorMessage == "Total should be larger than zero");
+            Assert.Contains(validator.Errors, x => x.ErrorMessage == "Total should be greater than zero");
         }
         
     }

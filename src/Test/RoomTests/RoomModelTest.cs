@@ -103,7 +103,7 @@ namespace Test.RoomTests
             var validator = validation.Validate(room);
             Assert.False(validator.IsValid);
             Assert.Equal(1, validator.Errors.Count);
-            Assert.Contains(validator.Errors, x => x.ErrorMessage == "Price should be larger than zero");
+            Assert.Contains(validator.Errors, x => x.ErrorMessage == "Price should be greater than zero");
         }
 
         [Fact]
@@ -122,26 +122,7 @@ namespace Test.RoomTests
             var validator = validation.Validate(room);
             Assert.False(validator.IsValid);
             Assert.Equal(1, validator.Errors.Count);
-            Assert.Contains(validator.Errors, x => x.ErrorMessage == "Adult Capacity should be larger than one");
-        }
-
-        [Fact]
-        public void Should_Not_Validate_Room_With_Children_Capacity_Less_Them_One()
-        {
-            var validation = new RoomValidation();
-            var room = new Room()
-            {
-                Id = Guid.NewGuid(),
-                RoomNumber = "1",
-                Description = "Ignis aurum probat, miseria fortes viros",
-                Price = 10,
-                ChildrenCapacity = 0,
-                AdultCapacity = 2
-            };
-            var validator = validation.Validate(room);
-            Assert.False(validator.IsValid);
-            Assert.Equal(1, validator.Errors.Count);
-            Assert.Contains(validator.Errors, x => x.ErrorMessage == "Children Capacity should be larger than one");
-        }
+            Assert.Contains(validator.Errors, x => x.ErrorMessage == "Adult Capacity should be greater than zero");
+        }        
     }
 }

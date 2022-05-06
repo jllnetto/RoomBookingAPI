@@ -1,4 +1,4 @@
-﻿namespace Business.Models.Enuns
+﻿namespace Business.Models.Enums
 {
     public enum BookingStatus : int
     {

@@ -3,11 +3,11 @@ using Business.Models.Filters;
 using Business.Utils;
 using Business.Utils.Domain.Utils;
 
-namespace Business.Interfaces.Servives
+namespace Business.Interfaces.Services
 {
     public interface IBookingService
     {
-        public Task Add(Booking booking);
+        public Task<Booking> Add(Booking booking);
 
         public Task<Paginator<Booking>> ListBookings(BookingFilter filter, int currentPage = 1, int itemsPerPage = 30);
         Task<Booking> GetBookingById(Guid id, bool asNoTracking = false);
@@ -16,7 +16,7 @@ namespace Business.Interfaces.Servives
         public Task CheckIn(Guid id);
         Task CancelBooking(Guid id);
 
-        public Task Update(Booking booking);
+        public Task<Booking> Update(Booking booking);
         Task<ValidatorResult> Validate(Booking booking);
 
     }

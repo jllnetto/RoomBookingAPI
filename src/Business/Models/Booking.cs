@@ -1,5 +1,5 @@
 ﻿using Business.Models.Base;
-using Business.Models.Enuns;
+using Business.Models.Enums;
 
 namespace Business.Models
 {

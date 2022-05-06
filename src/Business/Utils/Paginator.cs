@@ -21,7 +21,7 @@
 
             public int NextPage { get; set; }
 
-            public int PreviusPage { get; set; }
+            public int PreviousPage { get; set; }
 
             public int FirstItemOfPage { get; set; }
 
@@ -43,8 +43,8 @@
                     CountPages++;
                 }
                 NextPage = CountPages > CurrentPage ? CurrentPage + 1 : 0;
-                PreviusPage = CurrentPage > 1 ? CurrentPage - 1 : 0;
-                FirstItemOfPage = PreviusPage * ItemsPerPage + 1;
+                PreviousPage = CurrentPage > 1 ? CurrentPage - 1 : 0;
+                FirstItemOfPage = PreviousPage * ItemsPerPage + 1;
                 LastItemOfPage = CurrentPage * itemsPerPage - (CurrentPage * itemsPerPage - CountItems);
 
                 if (CountItems > CurrentPage * itemsPerPage)

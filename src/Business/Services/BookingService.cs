@@ -1,8 +1,8 @@
 ﻿using Business.Interfaces.Notifications;
 using Business.Interfaces.Repositories;
-using Business.Interfaces.Servives;
+using Business.Interfaces.Services;
 using Business.Models;
-using Business.Models.Enuns;
+using Business.Models.Enums;
 using Business.Models.Filters;
 using Business.Models.Validations;
 using Business.Services.Base;
@@ -23,20 +23,23 @@ namespace Business.Services
             _roomService = roomService;
         }
 
-        public async Task Add(Booking bookings)
+        public async Task<Booking> Add(Booking bookings)
         {
+            bookings.Total = await CalculateTotal(bookings);
             if (!ExecuteValidation(new BookingValidation(), bookings) || !(await Validate(bookings)).IsValid)
             {
-                return;
+                return bookings;
             }
-            await _bookingsRepository.Add(bookings);
+
+            bookings.BookingStatus = BookingStatus.Created;
+           return await _bookingsRepository.Add(bookings);
         }
 
         public async Task CancelBooking(Guid id)
         {
             Booking canceled = await _bookingsRepository.GetById(id);
 
-            if((await ValidateBookingCanceling(canceled)).IsValid)
+            if(!(await ValidateBookingCanceling(canceled)).IsValid)
             {
                 return;
             }
@@ -48,7 +51,7 @@ namespace Business.Services
         public async Task CheckIn(Guid id)
         {
             Booking checkedin = await _bookingsRepository.GetById(id);
-            if ((await ValidateBookingCheckIn(checkedin)).IsValid)
+            if (!(await ValidateBookingCheckIn(checkedin)).IsValid)
             {
                 return;
             }
@@ -60,7 +63,7 @@ namespace Business.Services
         {
             if (asNoTracking)
             {
-                return await _bookingsRepository.GetByIdNoTarcking(id);
+                return await _bookingsRepository.GetByIdNoTracking(id);
             }
             return await _bookingsRepository.GetById(id);
         }
@@ -75,13 +78,14 @@ namespace Business.Services
             await _bookingsRepository.Remove(id);
         }
 
-        public async Task Update(Booking bookings)
+        public async Task<Booking> Update(Booking bookings)
         {
+            bookings.Total = await CalculateTotal(bookings);
             if (!ExecuteValidation(new BookingValidation(), bookings) || !(await ValidateUpdate(bookings)).IsValid)
             {
-                return;
+                return bookings;
             }
-            await _bookingsRepository.Update(bookings);
+           return await _bookingsRepository.Update(bookings);
         }
 
         public async Task<ValidatorResult> Validate(Booking booking)
@@ -181,6 +185,13 @@ namespace Business.Services
             }
             return result;
         }       
+
+        private async Task<decimal> CalculateTotal(Booking booking)
+        {
+            Room room = await _roomService.GetRoomById(booking.Id);
+            decimal total = ((decimal)(booking.BookingEnds.Date - booking.BookingStarts.Date).TotalDays * room.Price);
+            return total;
+        }
 
     }
 }
