@@ -24,7 +24,7 @@ namespace API.V1.Controllers
 
         }
 
-        [HttpGet]
+        [HttpPost("GetAll")]
         public async Task<Paginator<RoomDTO>> GetAll(RoomFilter filter, int currentPage = 1, int itemsPerPage = 30)
         {
             return _mapper.Map<Paginator<RoomDTO>>(await _roomService.ListRooms(filter, currentPage, itemsPerPage));
@@ -97,8 +97,6 @@ namespace API.V1.Controllers
 
             return CustomResponse(roomRemove);
         }
-
-
 
     }
 }

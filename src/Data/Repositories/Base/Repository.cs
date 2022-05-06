@@ -31,11 +31,14 @@ namespace Data.Repositories.Base
         {
             return await DbSet.FindAsync(id);
         }
+
+       
+       
         public async Task<Paginator<TEntity>> Search(Expression<Func<TEntity, bool>> predicate, int currentPage = 1, int itemsPerPage = 30)
         {
 
             IQueryable<TEntity> query = DbSet.AsNoTracking().Where(predicate);
-            int count = await query.CountAsync();
+            int count = query.Count();
             List<TEntity> data = await query
                     .OrderByDescending(c => c.CreateDate)
                     .Skip((currentPage - 1) * itemsPerPage)

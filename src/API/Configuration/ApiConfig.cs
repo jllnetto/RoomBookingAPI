@@ -43,7 +43,6 @@ namespace API.Configuration
                         builder
                             .WithMethods("GET")
                             .SetIsOriginAllowedToAllowWildcardSubdomains()
-
                             .AllowAnyHeader());
             });
 
@@ -59,7 +58,7 @@ namespace API.Configuration
             }
             else
             {
-                app.UseCors("Development");
+                app.UseCors("Production");
                 app.UseHsts();
             }
 
@@ -69,12 +68,12 @@ namespace API.Configuration
 
             app.UseRouting();
 
-            app.UseAuthentication();
-            app.UseAuthorization();
-
             app.UseStaticFiles();
 
-
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
 
             return app;
         }

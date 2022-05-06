@@ -8,7 +8,7 @@ namespace Business.Services.Base
 {
     public class BaseService
     {
-        private readonly INotificator _notificator;
+        protected readonly INotificator _notificator;
 
         public BaseService(INotificator notificador)
         {
@@ -32,7 +32,10 @@ namespace Business.Services.Base
         {
             var validator = validacao.Validate(entidade);
 
-            if (validator.IsValid) return true;
+            if (validator.IsValid)
+            {
+                return true;
+            }
 
             Notificate(validator);
 

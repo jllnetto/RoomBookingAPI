@@ -1,5 +1,6 @@
 ﻿using Business.Models;
 using Business.Models.Filters;
+using Business.Utils;
 using Business.Utils.Domain.Utils;
 
 namespace Business.Interfaces.Servives
@@ -12,6 +13,7 @@ namespace Business.Interfaces.Servives
         Task<Room> GetRoomById(Guid id);
         Task<bool> CheckAvailability(Guid? id, DateTime dateStart, DateTime dateEnd);
         Task Remove(Guid Id);
+        Task<ValidatorResult> Validate(Room room);
 
     }
 }

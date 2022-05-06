@@ -13,8 +13,6 @@ namespace API.Configuration
             {
                 c.OperationFilter<SwaggerDefaultValues>();
 
-
-
             });
 
             return services;
@@ -114,8 +112,7 @@ namespace API.Configuration
 
         public async Task Invoke(HttpContext context)
         {
-            if (context.Request.Path.StartsWithSegments("/swagger")
-                && !context.User.Identity.IsAuthenticated)
+            if (context.Request.Path.StartsWithSegments("/swagger"))
             {
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                 return;

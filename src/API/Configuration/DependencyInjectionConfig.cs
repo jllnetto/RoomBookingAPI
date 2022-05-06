@@ -20,8 +20,7 @@ namespace API.Configuration
 
             services.AddScoped<INotificator, Notificator>();
             services.AddScoped<IRoomService, RoomService>();
-
-
+            services.AddScoped<IBookingService, BookingService>();
 
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 

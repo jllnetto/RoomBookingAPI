@@ -8,6 +8,7 @@ using Business.Models.Filters;
 using Business.Utils.Domain.Utils;
 using Microsoft.AspNetCore.Mvc;
 
+
 namespace API.V1.Controllers
 {
     [ApiVersion("1.0", Deprecated = false)]
@@ -22,7 +23,7 @@ namespace API.V1.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet]
+        [HttpPost("GetAll")]
         public async Task<Paginator<BookingDTO>> GetAll(BookingFilter filter, int currentPage = 1, int itemsPerPage = 30)
         {
             return _mapper.Map<Paginator<BookingDTO>>(await _bookingService.ListBookings(filter, currentPage, itemsPerPage));
@@ -58,6 +59,7 @@ namespace API.V1.Controllers
                 NotificateError("The Id informed are not the same");
                 return CustomResponse();
             }
+
             if (!ModelState.IsValid)
             {
                 return CustomResponse(ModelState);
@@ -80,12 +82,11 @@ namespace API.V1.Controllers
             return CustomResponse(bookingDTO);
         }
 
-
         [HttpPut("CancelBooking")]
 
         public async Task<ActionResult> CancelBooking(Guid id)
         {
-            if (await _bookingService.GetBookingById(id) is null)
+            if (await _bookingService.GetBookingById(id, true) is null)
             {
                 return NotFound();
             }
@@ -96,15 +97,13 @@ namespace API.V1.Controllers
         [HttpPut("CheckIn")]
         public async Task<ActionResult> CheckIn(Guid id)
         {
-            if (await _bookingService.GetBookingById(id) is null)
+            if (await _bookingService.GetBookingById(id, true) is null)
             {
                 return NotFound();
             }
             await _bookingService.CheckIn(id);
             return CustomResponse();
         }
-
-
 
         [HttpDelete("{id:guid}")]
         public async Task<ActionResult<BookingDTO>> Delete(Guid id)

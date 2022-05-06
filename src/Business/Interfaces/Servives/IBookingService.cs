@@ -1,5 +1,6 @@
 ﻿using Business.Models;
 using Business.Models.Filters;
+using Business.Utils;
 using Business.Utils.Domain.Utils;
 
 namespace Business.Interfaces.Servives
@@ -16,6 +17,7 @@ namespace Business.Interfaces.Servives
         Task CancelBooking(Guid id);
 
         public Task Update(Booking booking);
+        Task<ValidatorResult> Validate(Booking booking);
 
     }
 }

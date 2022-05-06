@@ -2,9 +2,11 @@
 using Business.Interfaces.Repositories;
 using Business.Interfaces.Servives;
 using Business.Models;
+using Business.Models.Enuns;
 using Business.Models.Filters;
 using Business.Models.Validations;
 using Business.Services.Base;
+using Business.Utils;
 using Business.Utils.Domain.Utils;
 using System.Linq.Expressions;
 
@@ -23,7 +25,7 @@ namespace Business.Services
 
         public async Task Add(Booking bookings)
         {
-            if (!ExecuteValidation(new BookingValidation(), bookings) && await Validate(bookings))
+            if (!ExecuteValidation(new BookingValidation(), bookings) || !(await Validate(bookings)).IsValid)
             {
                 return;
             }
@@ -34,17 +36,24 @@ namespace Business.Services
         {
             Booking canceled = await _bookingsRepository.GetById(id);
 
-            canceled.BookingStatus = Models.Enuns.BookingStatus.Canceled;
-            await Update(canceled);
+            if((await ValidateBookingCanceling(canceled)).IsValid)
+            {
+                return;
+            }
 
+            canceled.BookingStatus = BookingStatus.Canceled;
+            await _bookingsRepository.Update(canceled);
         }
 
         public async Task CheckIn(Guid id)
         {
             Booking checkedin = await _bookingsRepository.GetById(id);
-
-            checkedin.BookingStatus = Models.Enuns.BookingStatus.Executed;
-            await Update(checkedin);
+            if ((await ValidateBookingCheckIn(checkedin)).IsValid)
+            {
+                return;
+            }
+            checkedin.BookingStatus = BookingStatus.Executed;
+            await _bookingsRepository.Update(checkedin);
         }
 
         public async Task<Booking> GetBookingById(Guid id, bool asNoTracking = false)
@@ -58,7 +67,7 @@ namespace Business.Services
 
         public async Task<Paginator<Booking>> ListBookings(BookingFilter filter, int currentPage = 1, int itemsPerPage = 30)
         {
-            return await _bookingsRepository.Search(CreateFilter(filter), currentPage, itemsPerPage);
+            return await _bookingsRepository.Search(filter, currentPage, itemsPerPage);
         }
 
         public async Task Remove(Guid id)
@@ -68,99 +77,110 @@ namespace Business.Services
 
         public async Task Update(Booking bookings)
         {
-            if (!ExecuteValidation(new BookingValidation(), bookings) && await Validate(bookings))
+            if (!ExecuteValidation(new BookingValidation(), bookings) || !(await ValidateUpdate(bookings)).IsValid)
             {
                 return;
             }
             await _bookingsRepository.Update(bookings);
         }
 
-        public async Task<bool> Validate(Booking bookings)
+        public async Task<ValidatorResult> Validate(Booking booking)
         {
-            bool valid = true;
-            if (bookings.BookingStarts <= bookings.BookingEnds)
+            var result = new ValidatorResult(_notificator);
+
+            result.IsValid = true;
+            if (booking.BookingStarts >= booking.BookingEnds)
             {
-                Notificate("The bookings start date must not surpass the bookings end date");
-                valid = false;
+                result.AddMessage("The bookings start date must not surpass the bookings end date");
+                result.IsValid = false;
             }
-            if ((bookings.BookingStarts - bookings.BookingEnds).TotalDays > 3)
+            if ((booking.BookingEnds - booking.BookingStarts).TotalDays > 3)
             {
-                Notificate("The maximun bookings time are 3 days");
-                valid = false;
+                result.AddMessage("The maximun bookings time are 3 days");
+                result.IsValid = false;
             }
-            if (bookings.BookingStarts.Date <= DateTime.Today.Date)
+            if (booking.BookingStarts.Date <= DateTime.Today.Date)
             {
-                Notificate("The bookings must be made at least one day from the current date");
-                valid = false;
+                result.AddMessage("The bookings must be made at least one day from the current date");
+                result.IsValid = false;
             }
-            if (bookings.BookingStarts.Date > DateTime.Today.Date.AddDays(30))
+            if (booking.BookingStarts.Date >= DateTime.Today.Date.AddDays(30))
             {
-                Notificate("The bookings set to start more than 30 days from the current date");
-                valid = false;
+                result.AddMessage("The bookings set to start more than 30 days from the current date");
+                result.IsValid = false;
             }
-            if (bookings.BookingEnds.Date > DateTime.Today.Date.AddDays(30))
+            if (booking.BookingEnds.Date > DateTime.Today.Date.AddDays(33))
             {
-                Notificate("The bookings set to end more than 30 days from the current date");
-                valid = false;
+                result.AddMessage("The bookings set to end more than 33 days from the current date");
+                result.IsValid = false;
             }
-            if (await _roomService.CheckAvailability(bookings.RoomId, bookings.BookingStarts, bookings.BookingEnds))
+            if (booking.RoomId == null || booking.RoomId == Guid.Empty)
             {
-                Notificate("The requeste room is not available for the requested date");
-                valid = false;
+                result.AddMessage("Room is required");
+                result.IsValid = false;
             }
-            return valid;
+            if ((await _roomService.GetRoomById(booking.RoomId)) ==null)
+            {
+                result.AddMessage("Booked Room not found");
+                result.IsValid = false;
+            }
+            if (await _roomService.CheckAvailability(booking.RoomId, booking.BookingStarts, booking.BookingEnds))
+            {
+                result.AddMessage("The requested room is not available for the requested date");
+                result.IsValid = false;
+            }
+            return result;
         }
-        private Expression<Func<Booking, bool>> CreateFilter(BookingFilter filter)
+
+        public async Task<ValidatorResult> ValidateUpdate(Booking booking)
         {
-            Expression<Func<Booking, bool>> expression = (r => r.Id != Guid.Empty);
-            if (filter is null)
+            var reult = await Validate(booking);
+            if(booking.BookingStatus == BookingStatus.Canceled)
             {
-                return expression;
+                reult.AddMessage("Can not update a canceled reservation");
+                reult.IsValid = false;
             }
-            if (filter.Id is not null)
+            if(booking.BookingStatus == BookingStatus.Executed)
             {
-                var compiled = expression.Compile();
-                expression = (r => compiled(r) && r.Id == filter.Id);
+                reult.AddMessage("Can not update a checked-in reservation");
+                reult.IsValid=false;
             }
-            if (!string.IsNullOrEmpty(filter.RoomNumber))
-            {
-                var compiled = expression.Compile();
-                expression = (r => compiled(r) && r.Room.RoomNumber.Contains(filter.RoomNumber));
-
-            }
-            if (filter.BookingStatus is not null)
-            {
-                var compiled = expression.Compile();
-                expression = (r => compiled(r) && filter.BookingStatus == (int)r.BookingStatus);
-            }
-            if (filter.StartDateBegin is not null)
-            {
-                var compiled = expression.Compile();
-                expression = (r => compiled(r) && filter.StartDateBegin.Value.Date >= r.BookingStarts.Date);
-            }
-            if (filter.StartDateFinish is not null)
-            {
-                var compiled = expression.Compile();
-                expression = (r => compiled(r) && filter.StartDateFinish.Value.Date <= r.BookingStarts.Date);
-            }
-            if (filter.EndDateBegin is not null)
-            {
-                var compiled = expression.Compile();
-                expression = (r => compiled(r) && filter.EndDateBegin.Value.Date >= r.BookingEnds.Date);
-            }
-            if (filter.EndDateFinish is not null)
-            {
-                var compiled = expression.Compile();
-                expression = (r => compiled(r) && filter.EndDateFinish.Value.Date <= r.BookingEnds.Date);
-            }
-            if (filter.RoomId is not null)
-            {
-                var compiled = expression.Compile();
-                expression = (r => compiled(r) && filter.RoomId.Value == r.RoomId);
-            }
-
-            return expression;
+            return reult;
         }
+
+        public async Task<ValidatorResult> ValidateBookingCheckIn(Booking booking)
+        {
+            var result = new ValidatorResult(_notificator);
+            result.IsValid = true;
+            if(booking.BookingStatus == BookingStatus.Executed)
+            {
+                result.AddMessage("This booking has already been checked-in");
+                result.IsValid=false;
+            }
+            if (booking.BookingStatus == BookingStatus.Canceled)
+            {
+                result.AddMessage("Can not chenck-in because booking has been canceled");
+                result.IsValid = false;
+            }
+            return result;
+        }
+
+        public async Task<ValidatorResult> ValidateBookingCanceling(Booking booking)
+        {
+            var result = new ValidatorResult(_notificator);
+            result.IsValid = true;
+            if(booking.BookingStatus == BookingStatus.Canceled)
+            {
+                result.AddMessage("This booking has already been canceled");
+                result.IsValid = false;
+            }
+            if (booking.BookingStatus == BookingStatus.Executed)
+            {
+                result.AddMessage("Can not cancel executed bookings");
+                result.IsValid = false;
+            }
+            return result;
+        }       
 
     }
 }

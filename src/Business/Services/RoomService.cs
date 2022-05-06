@@ -5,6 +5,7 @@ using Business.Models;
 using Business.Models.Filters;
 using Business.Models.Validations;
 using Business.Services.Base;
+using Business.Utils;
 using Business.Utils.Domain.Utils;
 using System.Linq.Expressions;
 
@@ -20,10 +21,9 @@ namespace Business.Services
 
         public async Task Add(Room room)
         {
-            if (!ExecuteValidation(new RoomValidation(), room) && await Validate(room))
+            if (!ExecuteValidation(new RoomValidation(), room) || !(await Validate(room)).IsValid)
             {
                 return;
-
             }
 
             await _roomRepository.Add(room);
@@ -36,7 +36,7 @@ namespace Business.Services
 
         public async Task<Paginator<Room>> ListRooms(RoomFilter filter, int currentPage = 1, int itemsPerPage = 30)
         {
-            return await _roomRepository.Search(CreateFilter(filter), currentPage, itemsPerPage);
+            return await _roomRepository.Search(filter, currentPage, itemsPerPage);
         }
 
         public async Task<Room> GetRoomById(Guid id)
@@ -51,75 +51,31 @@ namespace Business.Services
 
         public async Task Update(Room room)
         {
-            if (!ExecuteValidation(new RoomValidation(), room) && await Validate(room))
+            if (!ExecuteValidation(new RoomValidation(), room) || !(await Validate(room)).IsValid)
             {
                 return;
-
             }
+
             await _roomRepository.Update(room);
         }
 
-        public async Task<bool> Validate(Room room)
+        public async Task<ValidatorResult> Validate(Room room)
         {
-            bool valid = true;
-            if ((await _roomRepository.Search(r => r.RoomNumber.Equals(room.RoomNumber))).CountItems > 0)
+            var result = new ValidatorResult(_notificator);            
+            result.IsValid = true;
+            if ((await _roomRepository.GetRoomByRoomNumber(room.RoomNumber)) is not null && (await _roomRepository.GetRoomByRoomNumber(room.RoomNumber)).Id != room.Id)
             {
-                Notificate("You can't have to room with the same number");
-                valid = false;
+                result.AddMessage("You can't have to room with the same number");
+                result.IsValid = false;
             }
-            return valid;
+            if(room.Price <= 0)
+            {
+                result.AddMessage("The price must be greater than zero");
+                result.IsValid = false;
+            }
+
+            return result;
         }
-
-        private Expression<Func<Room, bool>> CreateFilter(RoomFilter filter)
-        {
-            Expression<Func<Room, bool>> expression = (r => r.Id != Guid.Empty);
-            if (filter is null)
-            {
-                return expression;
-            }
-            if (filter.Id is not null)
-            {
-                var compiled = expression.Compile();
-                expression = (r => compiled(r) && r.Id == filter.Id);
-
-            }
-            if (!string.IsNullOrEmpty(filter.RoomNumber))
-            {
-                var compiled = expression.Compile();
-                expression = (r => compiled(r) && r.RoomNumber.Contains(filter.RoomNumber));
-            }
-            if (filter.PriceBegin is not null)
-            {
-                var compiled = expression.Compile();
-                expression = (r => compiled(r) && filter.PriceBegin >= r.Price);
-            }
-            if (filter.PriceFinish is not null)
-            {
-                var compiled = expression.Compile();
-                expression = (r => compiled(r) && filter.PriceFinish <= r.Price);
-            }
-            if (filter.AdultCapacityBegin is not null)
-            {
-                var compiled = expression.Compile();
-                expression = (r => compiled(r) && filter.AdultCapacityBegin >= r.AdultCapacity);
-            }
-            if (filter.AdultCapacityFinish is not null)
-            {
-                var compiled = expression.Compile();
-                expression = (r => compiled(r) && filter.AdultCapacityFinish <= r.AdultCapacity);
-            }
-            if (filter.ChildrenCapacityBegin is not null)
-            {
-                var compiled = expression.Compile();
-                expression = (r => compiled(r) && filter.ChildrenCapacityBegin >= r.ChildrenCapacity);
-            }
-            if (filter.ChildrenCapacityFinish is not null)
-            {
-                var compiled = expression.Compile();
-                expression = (r => compiled(r) && filter.ChildrenCapacityFinish <= r.ChildrenCapacity);
-            }
-
-            return expression;
-        }
+        
     }
 }
